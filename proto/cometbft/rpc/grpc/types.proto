@@ -19,8 +19,8 @@ message RequestBroadcastTx {
 message ResponsePing {}
 
 message ResponseBroadcastTx {
-  cometbft.abci.ResponseCheckTx check_tx  = 1;
-  cometbft.abci.ExecTxResult    tx_result = 2;
+  cometbft.abci.ResponseCheckTx   check_tx   = 1;
+  cometbft.abci.ResponseDeliverTx deliver_tx = 2;
 }
 
 //----------------------------------------
