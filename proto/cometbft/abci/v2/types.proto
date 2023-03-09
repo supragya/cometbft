@@ -119,7 +119,7 @@ message Response {
 
 message ResponseInitChain {
   cometbft.types.v2.ConsensusParams consensus_params = 1;
-  repeated v1.ValidatorUpdate          validators       = 2 [(gogoproto.nullable) = false];
+  repeated v1.ValidatorUpdate       validators       = 2 [(gogoproto.nullable) = false];
   bytes                             app_hash         = 3;
 }
 
@@ -189,6 +189,9 @@ message CommitInfo {
   repeated v1.VoteInfo  votes = 2 [(gogoproto.nullable) = false];
 }
 
+// ExtendedCommitInfo is similar to CommitInfo except that it is only used in
+// the PrepareProposal request such that Tendermint can provide vote extensions
+// to the application.
 message ExtendedCommitInfo {
   // The round at which the block proposer decided in the previous height.
   int32 round = 1;
@@ -198,7 +201,9 @@ message ExtendedCommitInfo {
 }
 
 // Event allows application developers to attach additional information to
-// ResponseBeginBlock, ResponseEndBlock, ResponseCheckTx and ResponseDeliverTx.
+// ResponseFinalizeBlock (defined in .v3) and ResponseCheckTx.
+// Up to 0.37, this could also be used in ResponseBeginBlock, ResponseEndBlock,
+// and ResponseDeliverTx.
 // Later, transactions may be queried using these events.
 message Event {
   string                  type       = 1;
@@ -219,9 +224,12 @@ message EventAttribute {
 // Blockchain Types
 
 message ExtendedVoteInfo {
-  v1.Validator validator         = 1 [(gogoproto.nullable) = false];
-  bool         signed_last_block = 2;
-  bytes        vote_extension    = 3;  // Reserved for future use
+  // The validator that sent the vote.
+  v1.Validator validator = 1 [(gogoproto.nullable) = false];
+  // Indicates whether the validator signed the last block, allowing for rewards based on validator availability.
+  bool signed_last_block = 2;
+  // Non-deterministic extension provided by the sending validator's application.
+  bytes vote_extension = 3;
 }
 
 enum MisbehaviorType {
