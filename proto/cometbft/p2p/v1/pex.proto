@@ -1,9 +1,9 @@
 syntax = "proto3";
-package cometbft.p2p;
+package cometbft.p2p.v1;
 
-option go_package = "github.com/cometbft/cometbft/proto/cometbft/p2p";
+option go_package = "github.com/cometbft/cometbft/proto/cometbft/p2p/v1";
 
-import "cometbft/p2p/types.proto";
+import "cometbft/p2p/v1/types.proto";
 import "gogoproto/gogo.proto";
 
 message PexRequest {}

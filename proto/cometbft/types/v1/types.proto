@@ -1,13 +1,13 @@
 syntax = "proto3";
-package cometbft.types;
+package cometbft.types.v1;
 
-option go_package = "github.com/cometbft/cometbft/proto/cometbft/types";
+option go_package = "github.com/cometbft/cometbft/proto/cometbft/types/v1";
 
 import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
-import "cometbft/crypto/proof.proto";
-import "cometbft/version/types.proto";
-import "cometbft/types/validator.proto";
+import "cometbft/crypto/v1/proof.proto";
+import "cometbft/version/v1/types.proto";
+import "cometbft/types/v1/validator.proto";
 
 // BlockIdFlag indicates which BlockID the signature is for
 enum BlockIDFlag {
@@ -41,9 +41,9 @@ message PartSetHeader {
 }
 
 message Part {
-  uint32                  index = 1;
-  bytes                   bytes = 2;
-  cometbft.crypto.Proof proof = 3 [(gogoproto.nullable) = false];
+  uint32                    index = 1;
+  bytes                     bytes = 2;
+  cometbft.crypto.v1.Proof  proof = 3 [(gogoproto.nullable) = false];
 }
 
 // BlockID
@@ -57,7 +57,7 @@ message BlockID {
 // Header defines the structure of a block header.
 message Header {
   // basic block info
-  cometbft.version.Consensus version  = 1 [(gogoproto.nullable) = false];
+  cometbft.version.v1.Consensus version = 1 [(gogoproto.nullable) = false];
   string                       chain_id = 2 [(gogoproto.customname) = "ChainID"];
   int64                        height   = 3;
   google.protobuf.Timestamp    time     = 4 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
@@ -138,8 +138,8 @@ message SignedHeader {
 }
 
 message LightBlock {
-  SignedHeader                  signed_header = 1;
-  cometbft.types.ValidatorSet validator_set = 2;
+  SignedHeader                    signed_header = 1;
+  cometbft.types.v1.ValidatorSet  validator_set = 2;
 }
 
 message BlockMeta {
@@ -151,7 +151,7 @@ message BlockMeta {
 
 // TxProof represents a Merkle proof of the presence of a transaction in the Merkle tree.
 message TxProof {
-  bytes                   root_hash = 1;
-  bytes                   data      = 2;
-  cometbft.crypto.Proof proof     = 3;
+  bytes                     root_hash = 1;
+  bytes                     data      = 2;
+  cometbft.crypto.v1.Proof  proof     = 3;
 }

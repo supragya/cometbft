@@ -1,11 +1,11 @@
 syntax = "proto3";
-package cometbft.consensus;
+package cometbft.consensus.v1;
 
-option go_package = "github.com/cometbft/cometbft/proto/cometbft/consensus";
+option go_package = "github.com/cometbft/cometbft/proto/cometbft/consensus/v1";
 
 import "gogoproto/gogo.proto";
-import "cometbft/types/types.proto";
-import "cometbft/libs/bits/types.proto";
+import "cometbft/types/v1/types.proto";
+import "cometbft/libs/bits/v1/types.proto";
 
 // NewRoundStep is sent for every step taken in the ConsensusState.
 // For every height/round/step transition
@@ -23,40 +23,40 @@ message NewRoundStep {
 message NewValidBlock {
   int64                          height                = 1;
   int32                          round                 = 2;
-  cometbft.types.PartSetHeader block_part_set_header = 3 [(gogoproto.nullable) = false];
-  cometbft.libs.bits.BitArray  block_parts           = 4;
+  cometbft.types.v1.PartSetHeader block_part_set_header = 3 [(gogoproto.nullable) = false];
+  cometbft.libs.bits.v1.BitArray  block_parts           = 4;
   bool                           is_commit             = 5;
 }
 
 // Proposal is sent when a new block is proposed.
 message Proposal {
-  cometbft.types.Proposal proposal = 1 [(gogoproto.nullable) = false];
+  cometbft.types.v1.Proposal proposal = 1 [(gogoproto.nullable) = false];
 }
 
 // ProposalPOL is sent when a previous proposal is re-proposed.
 message ProposalPOL {
   int64                         height             = 1;
   int32                         proposal_pol_round = 2;
-  cometbft.libs.bits.BitArray proposal_pol       = 3 [(gogoproto.nullable) = false];
+  cometbft.libs.bits.v1.BitArray proposal_pol       = 3 [(gogoproto.nullable) = false];
 }
 
 // BlockPart is sent when gossipping a piece of the proposed block.
 message BlockPart {
   int64                 height = 1;
   int32                 round  = 2;
-  cometbft.types.Part part   = 3 [(gogoproto.nullable) = false];
+  cometbft.types.v1.Part part   = 3 [(gogoproto.nullable) = false];
 }
 
 // Vote is sent when voting for a proposal (or lack thereof).
 message Vote {
-  cometbft.types.Vote vote = 1;
+  cometbft.types.v1.Vote vote = 1;
 }
 
 // HasVote is sent to indicate that a particular vote has been received.
 message HasVote {
   int64                          height = 1;
   int32                          round  = 2;
-  cometbft.types.SignedMsgType type   = 3;
+  cometbft.types.v1.SignedMsgType type   = 3;
   int32                          index  = 4;
 }
 
@@ -64,17 +64,17 @@ message HasVote {
 message VoteSetMaj23 {
   int64                          height   = 1;
   int32                          round    = 2;
-  cometbft.types.SignedMsgType type     = 3;
-  cometbft.types.BlockID       block_id = 4 [(gogoproto.customname) = "BlockID", (gogoproto.nullable) = false];
+  cometbft.types.v1.SignedMsgType type     = 3;
+  cometbft.types.v1.BlockID       block_id = 4 [(gogoproto.customname) = "BlockID", (gogoproto.nullable) = false];
 }
 
 // VoteSetBits is sent to communicate the bit-array of votes seen for the BlockID.
 message VoteSetBits {
   int64                          height   = 1;
   int32                          round    = 2;
-  cometbft.types.SignedMsgType type     = 3;
-  cometbft.types.BlockID       block_id = 4 [(gogoproto.customname) = "BlockID", (gogoproto.nullable) = false];
-  cometbft.libs.bits.BitArray  votes    = 5 [(gogoproto.nullable) = false];
+  cometbft.types.v1.SignedMsgType type     = 3;
+  cometbft.types.v1.BlockID       block_id = 4 [(gogoproto.customname) = "BlockID", (gogoproto.nullable) = false];
+  cometbft.libs.bits.v1.BitArray  votes    = 5 [(gogoproto.nullable) = false];
 }
 
 message Message {

@@ -1,11 +1,11 @@
 syntax = "proto3";
-package cometbft.consensus;
+package cometbft.consensus.v1;
 
-option go_package = "github.com/cometbft/cometbft/proto/cometbft/consensus";
+option go_package = "github.com/cometbft/cometbft/proto/cometbft/consensus/v1";
 
 import "gogoproto/gogo.proto";
-import "cometbft/consensus/types.proto";
-import "cometbft/types/events.proto";
+import "cometbft/consensus/v1/types.proto";
+import "cometbft/types/v1/events.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 
@@ -32,7 +32,7 @@ message EndHeight {
 
 message WALMessage {
   oneof sum {
-    cometbft.types.EventDataRoundState   event_data_round_state = 1;
+    cometbft.types.v1.EventDataRoundState   event_data_round_state = 1;
     MsgInfo                              msg_info               = 2;
     TimeoutInfo                          timeout_info           = 3;
     EndHeight                            end_height             = 4;

@@ -1,7 +1,7 @@
 syntax = "proto3";
-package cometbft.statesync;
+package cometbft.statesync.v1;
 
-option go_package = "github.com/cometbft/cometbft/proto/cometbft/statesync";
+option go_package = "github.com/cometbft/cometbft/proto/cometbft/statesync/v1";
 
 message Message {
   oneof sum {
