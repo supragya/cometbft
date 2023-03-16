@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cmtproto "github.com/cometbft/cometbft/proto/cometbft/types/v3"
 	"github.com/cometbft/cometbft/types"
 )
 

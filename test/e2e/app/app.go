@@ -21,8 +21,8 @@ import (
 	cryptoenc "github.com/cometbft/cometbft/crypto/encoding"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cometbft/cometbft/libs/protoio"
-	cryptoproto "github.com/cometbft/cometbft/proto/tendermint/crypto"
-	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cryptoproto "github.com/cometbft/cometbft/proto/cometbft/crypto/v1"
+	cmtproto "github.com/cometbft/cometbft/proto/cometbft/types/v3"
 	"github.com/cometbft/cometbft/version"
 )
 

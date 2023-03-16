@@ -22,7 +22,7 @@ import (
 	"github.com/cometbft/cometbft/internal/test"
 	"github.com/cometbft/cometbft/libs/log"
 	mpmocks "github.com/cometbft/cometbft/mempool/mocks"
-	cmtversion "github.com/cometbft/cometbft/proto/tendermint/version"
+	cmtversion "github.com/cometbft/cometbft/proto/cometbft/version/v1"
 	"github.com/cometbft/cometbft/proxy"
 	pmocks "github.com/cometbft/cometbft/proxy/mocks"
 	sm "github.com/cometbft/cometbft/state"

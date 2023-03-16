@@ -13,8 +13,8 @@ import (
 
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cometbft/cometbft/libs/protoio"
-	tmp2p "github.com/cometbft/cometbft/proto/tendermint/p2p"
-	"github.com/cometbft/cometbft/proto/tendermint/types"
+	tmp2p "github.com/cometbft/cometbft/proto/cometbft/p2p/v1"
+	"github.com/cometbft/cometbft/proto/cometbft/types/v3"
 )
 
 const maxPingPongPacketSize = 1024 // bytes

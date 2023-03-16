@@ -2,9 +2,12 @@ package types
 
 import (
 	"sort"
+	"github.com/cometbft/cometbft/abci/types/v1"
 )
 
 //------------------------------------------------------------------------------
+
+type ValidatorUpdate v1.ValidatorUpdate
 
 // ValidatorUpdates is a list of validators that implements the Sort interface
 type ValidatorUpdates []ValidatorUpdate

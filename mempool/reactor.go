@@ -10,7 +10,7 @@ import (
 	"github.com/cometbft/cometbft/libs/log"
 	cmtsync "github.com/cometbft/cometbft/libs/sync"
 	"github.com/cometbft/cometbft/p2p"
-	protomem "github.com/cometbft/cometbft/proto/tendermint/mempool"
+	protomem "github.com/cometbft/cometbft/proto/cometbft/mempool/v1"
 	"github.com/cometbft/cometbft/types"
 )
 

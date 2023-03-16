@@ -15,7 +15,7 @@ import (
 	"github.com/cometbft/cometbft/abci/types"
 	cryptoencoding "github.com/cometbft/cometbft/crypto/encoding"
 	"github.com/cometbft/cometbft/libs/log"
-	cryptoproto "github.com/cometbft/cometbft/proto/tendermint/crypto"
+	cryptoproto "github.com/cometbft/cometbft/proto/cometbft/crypto/v1"
 	"github.com/cometbft/cometbft/version"
 )
 

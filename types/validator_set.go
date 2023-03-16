@@ -11,7 +11,7 @@ import (
 
 	"github.com/cometbft/cometbft/crypto/merkle"
 	cmtmath "github.com/cometbft/cometbft/libs/math"
-	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cmtproto "github.com/cometbft/cometbft/proto/cometbft/types/v3"
 )
 
 const (

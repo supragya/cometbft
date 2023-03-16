@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	cmtstate "github.com/cometbft/cometbft/proto/tendermint/state"
-	cmtversion "github.com/cometbft/cometbft/proto/tendermint/version"
+	cmtstate "github.com/cometbft/cometbft/proto/cometbft/state/v3"
+	cmtversion "github.com/cometbft/cometbft/proto/cometbft/version/v1"
 	"github.com/cometbft/cometbft/version"
 )
 

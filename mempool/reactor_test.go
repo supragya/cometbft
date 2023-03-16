@@ -19,7 +19,7 @@ import (
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cometbft/cometbft/p2p"
 	"github.com/cometbft/cometbft/p2p/mock"
-	memproto "github.com/cometbft/cometbft/proto/tendermint/mempool"
+	memproto "github.com/cometbft/cometbft/proto/cometbft/mempool/v1"
 	"github.com/cometbft/cometbft/proxy"
 	"github.com/cometbft/cometbft/types"
 )
