@@ -9,7 +9,6 @@ import (
 	"github.com/cometbft/cometbft/libs/bits"
 	cmtjson "github.com/cometbft/cometbft/libs/json"
 	cmtsync "github.com/cometbft/cometbft/libs/sync"
-	cmtproto "github.com/cometbft/cometbft/proto/cometbft/types/v3"
 )
 
 const (
@@ -63,7 +62,7 @@ type VoteSet struct {
 	chainID           string
 	height            int64
 	round             int32
-	signedMsgType     cmtproto.SignedMsgType
+	signedMsgType     SignedMsgType
 	valSet            *ValidatorSet
 	extensionsEnabled bool
 
@@ -79,7 +78,7 @@ type VoteSet struct {
 // NewVoteSet instantiates all fields of a new vote set. This constructor requires
 // that no vote extension data be present on the votes that are added to the set.
 func NewVoteSet(chainID string, height int64, round int32,
-	signedMsgType cmtproto.SignedMsgType, valSet *ValidatorSet) *VoteSet {
+	signedMsgType SignedMsgType, valSet *ValidatorSet) *VoteSet {
 	if height == 0 {
 		panic("Cannot make VoteSet for height == 0, doesn't make sense.")
 	}
@@ -102,7 +101,7 @@ func NewVoteSet(chainID string, height int64, round int32,
 // The VoteSet constructed with NewExtendedVoteSet verifies the vote extension
 // data for every vote added to the set.
 func NewExtendedVoteSet(chainID string, height int64, round int32,
-	signedMsgType cmtproto.SignedMsgType, valSet *ValidatorSet) *VoteSet {
+	signedMsgType SignedMsgType, valSet *ValidatorSet) *VoteSet {
 	vs := NewVoteSet(chainID, height, round, signedMsgType, valSet)
 	vs.extensionsEnabled = true
 	return vs
@@ -440,7 +439,7 @@ func (voteSet *VoteSet) IsCommit() bool {
 	if voteSet == nil {
 		return false
 	}
-	if voteSet.signedMsgType != cmtproto.PrecommitType {
+	if voteSet.signedMsgType != SignedMsgType_PRECOMMIT {
 		return false
 	}
 	voteSet.mtx.Lock()
@@ -632,7 +631,7 @@ func (voteSet *VoteSet) sumTotalFrac() (int64, int64, float64) {
 // Panics if the vote type is not PrecommitType or if there's no +2/3 votes for
 // a single block.
 func (voteSet *VoteSet) MakeExtendedCommit() *ExtendedCommit {
-	if voteSet.signedMsgType != cmtproto.PrecommitType {
+	if voteSet.signedMsgType != SignedMsgType_PRECOMMIT {
 		panic("Cannot MakeExtendCommit() unless VoteSet.Type is PrecommitType")
 	}
 	voteSet.mtx.Lock()

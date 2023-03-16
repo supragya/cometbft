@@ -616,7 +616,7 @@ func NewMockDuplicateVoteEvidenceWithValidator(height int64, time time.Time,
 func makeMockVote(height int64, round, index int32, addr Address,
 	blockID BlockID, time time.Time) *Vote {
 	return &Vote{
-		Type:             cmtproto.SignedMsgType(2),
+		Type:             SignedMsgType(2),
 		Height:           height,
 		Round:            round,
 		BlockID:          blockID,

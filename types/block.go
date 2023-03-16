@@ -18,6 +18,7 @@ import (
 	cmtmath "github.com/cometbft/cometbft/libs/math"
 	cmtsync "github.com/cometbft/cometbft/libs/sync"
 	cmtproto "github.com/cometbft/cometbft/proto/cometbft/types/v3"
+	cmtproto1 "github.com/cometbft/cometbft/proto/cometbft/types/v1"
 	cmtversion "github.com/cometbft/cometbft/proto/cometbft/version/v1"
 	"github.com/cometbft/cometbft/version"
 )
@@ -514,7 +515,7 @@ func (h *Header) StringIndented(indent string) string {
 }
 
 // ToProto converts Header to protobuf
-func (h *Header) ToProto() *cmtproto.Header {
+func (h *Header) ToProto() *cmtproto1.Header {
 	if h == nil {
 		return nil
 	}
@@ -539,7 +540,7 @@ func (h *Header) ToProto() *cmtproto.Header {
 
 // FromProto sets a protobuf Header to the given pointer.
 // It returns an error if the header is invalid.
-func HeaderFromProto(ph *cmtproto.Header) (Header, error) {
+func HeaderFromProto(ph *cmtproto1.Header) (Header, error) {
 	if ph == nil {
 		return Header{}, errors.New("nil Header")
 	}
@@ -828,7 +829,7 @@ type Commit struct {
 func (commit *Commit) GetVote(valIdx int32) *Vote {
 	commitSig := commit.Signatures[valIdx]
 	return &Vote{
-		Type:             cmtproto.PrecommitType,
+		Type:             SignedMsgType_PRECOMMIT,
 		Height:           commit.Height,
 		Round:            commit.Round,
 		BlockID:          commitSig.BlockID(commit.BlockID),
@@ -1031,7 +1032,7 @@ func (ec *ExtendedCommit) Clone() *ExtendedCommit {
 // Panics if any of the votes have invalid or absent vote extension data.
 // Inverse of VoteSet.MakeExtendedCommit().
 func (ec *ExtendedCommit) ToExtendedVoteSet(chainID string, vals *ValidatorSet) *VoteSet {
-	voteSet := NewExtendedVoteSet(chainID, ec.Height, ec.Round, cmtproto.PrecommitType, vals)
+	voteSet := NewExtendedVoteSet(chainID, ec.Height, ec.Round, SignedMsgType_PRECOMMIT, vals)
 	ec.addSigsToVoteSet(voteSet)
 	return voteSet
 }
@@ -1040,7 +1041,7 @@ func (ec *ExtendedCommit) ToExtendedVoteSet(chainID string, vals *ValidatorSet) 
 // Panics if signatures from the ExtendedCommit can't be added to the voteset.
 // Inverse of VoteSet.MakeExtendedCommit().
 func (ec *ExtendedCommit) ToVoteSet(chainID string, vals *ValidatorSet) *VoteSet {
-	voteSet := NewVoteSet(chainID, ec.Height, ec.Round, cmtproto.PrecommitType, vals)
+	voteSet := NewVoteSet(chainID, ec.Height, ec.Round, SignedMsgType_PRECOMMIT, vals)
 	ec.addSigsToVoteSet(voteSet)
 	return voteSet
 }
@@ -1066,7 +1067,7 @@ func (ec *ExtendedCommit) addSigsToVoteSet(voteSet *VoteSet) {
 // Panics if signatures from the commit can't be added to the voteset.
 // Inverse of VoteSet.MakeCommit().
 func (commit *Commit) ToVoteSet(chainID string, vals *ValidatorSet) *VoteSet {
-	voteSet := NewVoteSet(chainID, commit.Height, commit.Round, cmtproto.PrecommitType, vals)
+	voteSet := NewVoteSet(chainID, commit.Height, commit.Round, SignedMsgType_PRECOMMIT, vals)
 	for idx, cs := range commit.Signatures {
 		if cs.BlockIDFlag == BlockIDFlagAbsent {
 			continue // OK, some precommits can be missing.
@@ -1130,7 +1131,7 @@ func (ec *ExtendedCommit) ToCommit() *Commit {
 func (ec *ExtendedCommit) GetExtendedVote(valIndex int32) *Vote {
 	ecs := ec.ExtendedSignatures[valIndex]
 	return &Vote{
-		Type:               cmtproto.PrecommitType,
+		Type:               SignedMsgType_PRECOMMIT,
 		Height:             ec.Height,
 		Round:              ec.Round,
 		BlockID:            ecs.BlockID(ec.BlockID),
@@ -1146,7 +1147,7 @@ func (ec *ExtendedCommit) GetExtendedVote(valIndex int32) *Vote {
 // Type returns the vote type of the extended commit, which is always
 // VoteTypePrecommit
 // Implements VoteSetReader.
-func (ec *ExtendedCommit) Type() byte { return byte(cmtproto.PrecommitType) }
+func (ec *ExtendedCommit) Type() byte { return byte(SignedMsgType_PRECOMMIT) }
 
 // GetHeight returns height of the extended commit.
 // Implements VoteSetReader.

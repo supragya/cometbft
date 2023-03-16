@@ -53,7 +53,7 @@ type Address = crypto.Address
 // Vote represents a prevote, precommit, or commit vote from validators for
 // consensus.
 type Vote struct {
-	Type               cmtproto.SignedMsgType `json:"type"`
+	Type               SignedMsgType 		  `json:"type"`
 	Height             int64                  `json:"height"`
 	Round              int32                  `json:"round"`    // assume there will not be greater than 2_147_483_647 rounds
 	BlockID            BlockID                `json:"block_id"` // zero if vote is nil.
@@ -195,9 +195,9 @@ func (vote *Vote) String() string {
 
 	var typeString string
 	switch vote.Type {
-	case cmtproto.PrevoteType:
+	case SignedMsgType_PREVOTE:
 		typeString = "Prevote"
-	case cmtproto.PrecommitType:
+	case SignedMsgType_PRECOMMIT:
 		typeString = "Precommit"
 	default:
 		panic("Unknown vote type")
@@ -246,7 +246,7 @@ func (vote *Vote) VerifyVoteAndExtension(chainID string, pubKey crypto.PubKey) e
 		return err
 	}
 	// We only verify vote extension signatures for non-nil precommits.
-	if vote.Type == cmtproto.PrecommitType && !ProtoBlockIDIsNil(&v.BlockID) {
+	if vote.Type == SignedMsgType_PRECOMMIT && !ProtoBlockIDIsNil(&v.BlockID) {
 		if len(vote.ExtensionSignature) == 0 {
 			return errors.New("expected vote extension signature")
 		}
@@ -262,7 +262,7 @@ func (vote *Vote) VerifyVoteAndExtension(chainID string, pubKey crypto.PubKey) e
 // VerifyExtension checks whether the vote extension signature corresponds to the
 // given chain ID and public key.
 func (vote *Vote) VerifyExtension(chainID string, pubKey crypto.PubKey) error {
-	if vote.Type != cmtproto.PrecommitType || vote.BlockID.IsZero() {
+	if vote.Type != SignedMsgType_PRECOMMIT || vote.BlockID.IsZero() {
 		return nil
 	}
 	v := vote.ToProto()
@@ -321,7 +321,7 @@ func (vote *Vote) ValidateBasic() error {
 	// We should only ever see vote extensions in non-nil precommits, otherwise
 	// this is a violation of the specification.
 	// https://github.com/tendermint/tendermint/issues/8487
-	if vote.Type != cmtproto.PrecommitType || vote.BlockID.IsZero() {
+	if vote.Type != SignedMsgType_PRECOMMIT || vote.BlockID.IsZero() {
 		if len(vote.Extension) > 0 {
 			return fmt.Errorf(
 				"unexpected vote extension; vote type %d, isNil %t",
@@ -333,7 +333,7 @@ func (vote *Vote) ValidateBasic() error {
 		}
 	}
 
-	if vote.Type == cmtproto.PrecommitType && !vote.BlockID.IsZero() {
+	if vote.Type == SignedMsgType_PRECOMMIT && !vote.BlockID.IsZero() {
 		// It's possible that this vote has vote extensions but
 		// they could also be disabled and thus not present thus
 		// we can't do all checks
@@ -357,7 +357,7 @@ func (vote *Vote) ValidateBasic() error {
 // on precommit vote types.
 func (vote *Vote) EnsureExtension() error {
 	// We should always see vote extension signatures in non-nil precommits
-	if vote.Type != cmtproto.PrecommitType {
+	if vote.Type != SignedMsgType_PRECOMMIT {
 		return nil
 	}
 	if vote.BlockID.IsZero() {
@@ -419,7 +419,7 @@ func SignAndCheckVote(
 	}
 	vote.Signature = v.Signature
 
-	isPrecommit := vote.Type == cmtproto.PrecommitType
+	isPrecommit := vote.Type == SignedMsgType_PRECOMMIT
 	if !isPrecommit && extensionsEnabled {
 		// Non-recoverable because the caller passed parameters that don't make sense
 		return false, fmt.Errorf("only Precommit votes may have extensions enabled; vote type: %d", vote.Type)

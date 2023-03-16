@@ -85,7 +85,7 @@ func (pv MockPV) SignVote(chainID string, vote *cmtproto.Vote) error {
 
 	var extSig []byte
 	// We only sign vote extensions for non-nil precommits
-	if vote.Type == cmtproto.PrecommitType && !ProtoBlockIDIsNil(&vote.BlockID) {
+	if vote.Type == SignedMsgType_PRECOMMIT && !ProtoBlockIDIsNil(&vote.BlockID) {
 		extSignBytes := VoteExtensionSignBytes(useChainID, vote)
 		extSig, err = pv.PrivKey.Sign(extSignBytes)
 		if err != nil {

@@ -38,7 +38,7 @@ func TestBlockAddEvidence(t *testing.T) {
 	lastID := makeBlockIDRandom()
 	h := int64(3)
 
-	voteSet, _, vals := randVoteSet(h-1, 1, cmtproto.PrecommitType, 10, 1)
+	voteSet, _, vals := randVoteSet(h-1, 1, SignedMsgType_PRECOMMIT, 10, 1)
 	extCommit, err := MakeExtCommit(lastID, h-1, 1, voteSet, vals, time.Now())
 	require.NoError(t, err)
 
@@ -59,7 +59,7 @@ func TestBlockValidateBasic(t *testing.T) {
 	lastID := makeBlockIDRandom()
 	h := int64(3)
 
-	voteSet, valSet, vals := randVoteSet(h-1, 1, cmtproto.PrecommitType, 10, 1)
+	voteSet, valSet, vals := randVoteSet(h-1, 1, SignedMsgType_PRECOMMIT, 10, 1)
 	extCommit, err := MakeExtCommit(lastID, h-1, 1, voteSet, vals, time.Now())
 	require.NoError(t, err)
 	commit := extCommit.ToCommit()
@@ -132,7 +132,7 @@ func TestBlockMakePartSetWithEvidence(t *testing.T) {
 	lastID := makeBlockIDRandom()
 	h := int64(3)
 
-	voteSet, _, vals := randVoteSet(h-1, 1, cmtproto.PrecommitType, 10, 1)
+	voteSet, _, vals := randVoteSet(h-1, 1, SignedMsgType_PRECOMMIT, 10, 1)
 	extCommit, err := MakeExtCommit(lastID, h-1, 1, voteSet, vals, time.Now())
 	require.NoError(t, err)
 
@@ -152,7 +152,7 @@ func TestBlockHashesTo(t *testing.T) {
 
 	lastID := makeBlockIDRandom()
 	h := int64(3)
-	voteSet, valSet, vals := randVoteSet(h-1, 1, cmtproto.PrecommitType, 10, 1)
+	voteSet, valSet, vals := randVoteSet(h-1, 1, SignedMsgType_PRECOMMIT, 10, 1)
 	extCommit, err := MakeExtCommit(lastID, h-1, 1, voteSet, vals, time.Now())
 	require.NoError(t, err)
 
@@ -231,13 +231,13 @@ func TestNilDataHashDoesntCrash(t *testing.T) {
 func TestCommit(t *testing.T) {
 	lastID := makeBlockIDRandom()
 	h := int64(3)
-	voteSet, _, vals := randVoteSet(h-1, 1, cmtproto.PrecommitType, 10, 1)
+	voteSet, _, vals := randVoteSet(h-1, 1, SignedMsgType_PRECOMMIT, 10, 1)
 	extCommit, err := MakeExtCommit(lastID, h-1, 1, voteSet, vals, time.Now())
 	require.NoError(t, err)
 
 	assert.Equal(t, h-1, extCommit.Height)
 	assert.EqualValues(t, 1, extCommit.Round)
-	assert.Equal(t, cmtproto.PrecommitType, cmtproto.SignedMsgType(extCommit.Type()))
+	assert.Equal(t, SignedMsgType_PRECOMMIT, SignedMsgType(extCommit.Type()))
 	if extCommit.Size() <= 0 {
 		t.Fatalf("commit %v has a zero or negative size: %d", extCommit, extCommit.Size())
 	}
@@ -439,7 +439,7 @@ func TestMaxHeaderBytes(t *testing.T) {
 func randCommit(now time.Time) *Commit {
 	lastID := makeBlockIDRandom()
 	h := int64(3)
-	voteSet, _, vals := randVoteSet(h-1, 1, cmtproto.PrecommitType, 10, 1)
+	voteSet, _, vals := randVoteSet(h-1, 1, SignedMsgType_PRECOMMIT, 10, 1)
 	extCommit, err := MakeExtCommit(lastID, h-1, 1, voteSet, vals, now)
 	if err != nil {
 		panic(err)
@@ -541,9 +541,9 @@ func TestVoteSetToExtendedCommit(t *testing.T) {
 			valSet, vals := RandValidatorSet(10, 1)
 			var voteSet *VoteSet
 			if testCase.includeExtension {
-				voteSet = NewExtendedVoteSet("test_chain_id", 3, 1, cmtproto.PrecommitType, valSet)
+				voteSet = NewExtendedVoteSet("test_chain_id", 3, 1, SignedMsgType_PRECOMMIT, valSet)
 			} else {
-				voteSet = NewVoteSet("test_chain_id", 3, 1, cmtproto.PrecommitType, valSet)
+				voteSet = NewVoteSet("test_chain_id", 3, 1, SignedMsgType_PRECOMMIT, valSet)
 			}
 			for i := 0; i < len(vals); i++ {
 				pubKey, err := vals[i].GetPubKey()
@@ -553,7 +553,7 @@ func TestVoteSetToExtendedCommit(t *testing.T) {
 					ValidatorIndex:   int32(i),
 					Height:           3,
 					Round:            1,
-					Type:             cmtproto.PrecommitType,
+					Type:             SignedMsgType_PRECOMMIT,
 					BlockID:          blockID,
 					Timestamp:        time.Now(),
 				}
@@ -606,7 +606,7 @@ func TestExtendedCommitToVoteSet(t *testing.T) {
 			lastID := makeBlockIDRandom()
 			h := int64(3)
 
-			voteSet, valSet, vals := randVoteSet(h-1, 1, cmtproto.PrecommitType, 10, 1)
+			voteSet, valSet, vals := randVoteSet(h-1, 1, SignedMsgType_PRECOMMIT, 10, 1)
 			extCommit, err := MakeExtCommit(lastID, h-1, 1, voteSet, vals, time.Now())
 			assert.NoError(t, err)
 
@@ -666,7 +666,7 @@ func TestCommitToVoteSetWithVotesForNilBlock(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		voteSet, valSet, vals := randVoteSet(height-1, round, cmtproto.PrecommitType, tc.numValidators, 1)
+		voteSet, valSet, vals := randVoteSet(height-1, round, SignedMsgType_PRECOMMIT, tc.numValidators, 1)
 
 		vi := int32(0)
 		for n := range tc.blockIDs {
@@ -678,7 +678,7 @@ func TestCommitToVoteSetWithVotesForNilBlock(t *testing.T) {
 					ValidatorIndex:   vi,
 					Height:           height - 1,
 					Round:            round,
-					Type:             cmtproto.PrecommitType,
+					Type:             SignedMsgType_PRECOMMIT,
 					BlockID:          tc.blockIDs[n],
 					Timestamp:        cmttime.Now(),
 				}

@@ -15,7 +15,7 @@ import (
 
 func TestVoteSet_AddVote_Good(t *testing.T) {
 	height, round := int64(1), int32(0)
-	voteSet, _, privValidators := randVoteSet(height, round, cmtproto.PrevoteType, 10, 1)
+	voteSet, _, privValidators := randVoteSet(height, round, SignedMsgType_PREVOTE, 10, 1)
 	val0 := privValidators[0]
 
 	val0p, err := val0.GetPubKey()
@@ -32,7 +32,7 @@ func TestVoteSet_AddVote_Good(t *testing.T) {
 		ValidatorIndex:   0, // since privValidators are in order
 		Height:           height,
 		Round:            round,
-		Type:             cmtproto.PrevoteType,
+		Type:             SignedMsgType_PREVOTE,
 		Timestamp:        cmttime.Now(),
 		BlockID:          BlockID{nil, PartSetHeader{}},
 	}
@@ -47,7 +47,7 @@ func TestVoteSet_AddVote_Good(t *testing.T) {
 
 func TestVoteSet_AddVote_Bad(t *testing.T) {
 	height, round := int64(1), int32(0)
-	voteSet, _, privValidators := randVoteSet(height, round, cmtproto.PrevoteType, 10, 1)
+	voteSet, _, privValidators := randVoteSet(height, round, SignedMsgType_PREVOTE, 10, 1)
 
 	voteProto := &Vote{
 		ValidatorAddress: nil,
@@ -55,7 +55,7 @@ func TestVoteSet_AddVote_Bad(t *testing.T) {
 		Height:           height,
 		Round:            round,
 		Timestamp:        cmttime.Now(),
-		Type:             cmtproto.PrevoteType,
+		Type:             SignedMsgType_PREVOTE,
 		BlockID:          BlockID{nil, PartSetHeader{}},
 	}
 
@@ -113,7 +113,7 @@ func TestVoteSet_AddVote_Bad(t *testing.T) {
 		require.NoError(t, err)
 		addr := pubKey.Address()
 		vote := withValidator(voteProto, addr, 3)
-		added, err := signAddVote(privValidators[3], withType(vote, byte(cmtproto.PrecommitType)), voteSet)
+		added, err := signAddVote(privValidators[3], withType(vote, byte(SignedMsgType_PRECOMMIT)), voteSet)
 		if added || err == nil {
 			t.Errorf("expected VoteSet.Add to fail, wrong type")
 		}
@@ -123,14 +123,14 @@ func TestVoteSet_AddVote_Bad(t *testing.T) {
 
 func TestVoteSet_2_3Majority(t *testing.T) {
 	height, round := int64(1), int32(0)
-	voteSet, _, privValidators := randVoteSet(height, round, cmtproto.PrevoteType, 10, 1)
+	voteSet, _, privValidators := randVoteSet(height, round, SignedMsgType_PREVOTE, 10, 1)
 
 	voteProto := &Vote{
 		ValidatorAddress: nil, // NOTE: must fill in
 		ValidatorIndex:   -1,  // NOTE: must fill in
 		Height:           height,
 		Round:            round,
-		Type:             cmtproto.PrevoteType,
+		Type:             SignedMsgType_PREVOTE,
 		Timestamp:        cmttime.Now(),
 		BlockID:          BlockID{nil, PartSetHeader{}},
 	}
@@ -173,7 +173,7 @@ func TestVoteSet_2_3Majority(t *testing.T) {
 
 func TestVoteSet_2_3MajorityRedux(t *testing.T) {
 	height, round := int64(1), int32(0)
-	voteSet, _, privValidators := randVoteSet(height, round, cmtproto.PrevoteType, 100, 1)
+	voteSet, _, privValidators := randVoteSet(height, round, SignedMsgType_PREVOTE, 100, 1)
 
 	blockHash := crypto.CRandBytes(32)
 	blockPartsTotal := uint32(123)
@@ -185,7 +185,7 @@ func TestVoteSet_2_3MajorityRedux(t *testing.T) {
 		Height:           height,
 		Round:            round,
 		Timestamp:        cmttime.Now(),
-		Type:             cmtproto.PrevoteType,
+		Type:             SignedMsgType_PREVOTE,
 		BlockID:          BlockID{blockHash, blockPartSetHeader},
 	}
 
@@ -272,7 +272,7 @@ func TestVoteSet_2_3MajorityRedux(t *testing.T) {
 
 func TestVoteSet_Conflicts(t *testing.T) {
 	height, round := int64(1), int32(0)
-	voteSet, _, privValidators := randVoteSet(height, round, cmtproto.PrevoteType, 4, 1)
+	voteSet, _, privValidators := randVoteSet(height, round, SignedMsgType_PREVOTE, 4, 1)
 	blockHash1 := cmtrand.Bytes(32)
 	blockHash2 := cmtrand.Bytes(32)
 
@@ -282,7 +282,7 @@ func TestVoteSet_Conflicts(t *testing.T) {
 		Height:           height,
 		Round:            round,
 		Timestamp:        cmttime.Now(),
-		Type:             cmtproto.PrevoteType,
+		Type:             SignedMsgType_PREVOTE,
 		BlockID:          BlockID{nil, PartSetHeader{}},
 	}
 
@@ -401,7 +401,7 @@ func TestVoteSet_Conflicts(t *testing.T) {
 
 func TestVoteSet_MakeCommit(t *testing.T) {
 	height, round := int64(1), int32(0)
-	voteSet, _, privValidators := randVoteSet(height, round, cmtproto.PrecommitType, 10, 1)
+	voteSet, _, privValidators := randVoteSet(height, round, SignedMsgType_PRECOMMIT, 10, 1)
 	blockHash, blockPartSetHeader := crypto.CRandBytes(32), PartSetHeader{123, crypto.CRandBytes(32)}
 
 	voteProto := &Vote{
@@ -410,7 +410,7 @@ func TestVoteSet_MakeCommit(t *testing.T) {
 		Height:           height,
 		Round:            round,
 		Timestamp:        cmttime.Now(),
-		Type:             cmtproto.PrecommitType,
+		Type:             SignedMsgType_PRECOMMIT,
 		BlockID:          BlockID{blockHash, blockPartSetHeader},
 	}
 
@@ -514,9 +514,9 @@ func TestVoteSet_VoteExtensionsEnabled(t *testing.T) {
 			valSet, privValidators := RandValidatorSet(5, 10)
 			var voteSet *VoteSet
 			if tc.requireExtensions {
-				voteSet = NewExtendedVoteSet("test_chain_id", height, round, cmtproto.PrecommitType, valSet)
+				voteSet = NewExtendedVoteSet("test_chain_id", height, round, SignedMsgType_PRECOMMIT, valSet)
 			} else {
-				voteSet = NewVoteSet("test_chain_id", height, round, cmtproto.PrecommitType, valSet)
+				voteSet = NewVoteSet("test_chain_id", height, round, SignedMsgType_PRECOMMIT, valSet)
 			}
 
 			val0 := privValidators[0]
@@ -533,7 +533,7 @@ func TestVoteSet_VoteExtensionsEnabled(t *testing.T) {
 				ValidatorIndex:   0,
 				Height:           height,
 				Round:            round,
-				Type:             cmtproto.PrecommitType,
+				Type:             SignedMsgType_PRECOMMIT,
 				Timestamp:        cmttime.Now(),
 				BlockID:          BlockID{blockHash, blockPartSetHeader},
 			}
@@ -562,12 +562,12 @@ func TestVoteSet_VoteExtensionsEnabled(t *testing.T) {
 func randVoteSet(
 	height int64,
 	round int32,
-	signedMsgType cmtproto.SignedMsgType,
+	signedMsgType SignedMsgType,
 	numValidators int,
 	votingPower int64,
 ) (*VoteSet, *ValidatorSet, []PrivValidator) {
 	valSet, privValidators := RandValidatorSet(numValidators, votingPower)
-	if signedMsgType == cmtproto.PrecommitType {
+	if signedMsgType == SignedMsgType_PRECOMMIT {
 		return NewExtendedVoteSet("test_chain_id", height, round, signedMsgType, valSet), valSet, privValidators
 	}
 	return NewVoteSet("test_chain_id", height, round, signedMsgType, valSet), valSet, privValidators
@@ -598,7 +598,7 @@ func withRound(vote *Vote, round int32) *Vote {
 // Convenience: Return new vote with different type
 func withType(vote *Vote, signedMsgType byte) *Vote {
 	vote = vote.Copy()
-	vote.Type = cmtproto.SignedMsgType(signedMsgType)
+	vote.Type = SignedMsgType(signedMsgType)
 	return vote
 }
 
