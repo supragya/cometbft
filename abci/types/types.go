@@ -89,6 +89,7 @@ type EventAttribute = v2.EventAttribute
 type Misbehavior = v2.Misbehavior
 type MisbehaviorType = v2.MisbehaviorType
 type TxResult = v3.TxResult
+type Validator = v1.Validator
 type ValidatorUpdate = v1.ValidatorUpdate
 
 type ABCIClient = v3.ABCIClient
