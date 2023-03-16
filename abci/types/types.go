@@ -51,6 +51,8 @@ type ResponseFinalizeBlock = v3.ResponseFinalizeBlock
 type ExecTxResult = v3.ExecTxResult
 type EventAttribute = v2.EventAttribute
 
+type ValidatorUpdate = v1.ValidatorUpdate
+
 type ResponseProcessProposal_ProposalStatus = v2.ResponseProcessProposal_ProposalStatus
 
 const (
