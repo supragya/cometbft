@@ -5,10 +5,10 @@ import cmtproto "github.com/cometbft/cometbft/proto/cometbft/types/v1"
 type SignedMsgType = cmtproto.SignedMsgType
 
 const (
-	SignedMsgType_UNKNOWN SignedMsgType = cmdproto.UnknownType
-	SignedMsgType_PREVOTE SignedMsgType = cmdproto.PrevoteType
-	SignedMsgType_PRECOMMIT SignedMsgType = cmdproto.PrecommitType
-	SignedMsgType_PROPOSAL SignedMsgType = cmdproto.ProposalType
+	SignedMsgType_UNKNOWN SignedMsgType = cmtproto.UnknownType
+	SignedMsgType_PREVOTE SignedMsgType = cmtproto.PrevoteType
+	SignedMsgType_PRECOMMIT SignedMsgType = cmtproto.PrecommitType
+	SignedMsgType_PROPOSAL SignedMsgType = cmtproto.ProposalType
 )
 
 // IsVoteTypeValid returns true if t is a valid vote type.

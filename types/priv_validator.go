@@ -8,6 +8,7 @@ import (
 	"github.com/cometbft/cometbft/crypto"
 	"github.com/cometbft/cometbft/crypto/ed25519"
 	cmtproto "github.com/cometbft/cometbft/proto/cometbft/types/v3"
+	cmtproto1 "github.com/cometbft/cometbft/proto/cometbft/types/v1"
 )
 
 // PrivValidator defines the functionality of a local CometBFT validator
@@ -15,8 +16,9 @@ import (
 type PrivValidator interface {
 	GetPubKey() (crypto.PubKey, error)
 
+	// FIXME: should use the domain types defined in this package, not the proto types
 	SignVote(chainID string, vote *cmtproto.Vote) error
-	SignProposal(chainID string, proposal *cmtproto.Proposal) error
+	SignProposal(chainID string, proposal *cmtproto1.Proposal) error
 }
 
 type PrivValidatorsByAddress []PrivValidator
@@ -99,7 +101,7 @@ func (pv MockPV) SignVote(chainID string, vote *cmtproto.Vote) error {
 }
 
 // Implements PrivValidator.
-func (pv MockPV) SignProposal(chainID string, proposal *cmtproto.Proposal) error {
+func (pv MockPV) SignProposal(chainID string, proposal *cmtproto1.Proposal) error {
 	useChainID := chainID
 	if pv.breakProposalSigning {
 		useChainID = "incorrect-chain-id"
@@ -147,7 +149,7 @@ func (pv *ErroringMockPV) SignVote(chainID string, vote *cmtproto.Vote) error {
 }
 
 // Implements PrivValidator.
-func (pv *ErroringMockPV) SignProposal(chainID string, proposal *cmtproto.Proposal) error {
+func (pv *ErroringMockPV) SignProposal(chainID string, proposal *cmtproto1.Proposal) error {
 	return ErroringMockPVErr
 }
 

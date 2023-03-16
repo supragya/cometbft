@@ -520,7 +520,7 @@ func (h *Header) ToProto() *cmtproto1.Header {
 		return nil
 	}
 
-	return &cmtproto.Header{
+	return &cmtproto1.Header{
 		Version:            h.Version,
 		ChainID:            h.ChainID,
 		Height:             h.Height,
@@ -687,13 +687,13 @@ func (cs CommitSig) ValidateBasic() error {
 }
 
 // ToProto converts CommitSig to protobuf
-func (cs *CommitSig) ToProto() *cmtproto.CommitSig {
+func (cs *CommitSig) ToProto() *cmtproto1.CommitSig {
 	if cs == nil {
 		return nil
 	}
 
-	return &cmtproto.CommitSig{
-		BlockIdFlag:      cmtproto.BlockIDFlag(cs.BlockIDFlag),
+	return &cmtproto1.CommitSig{
+		BlockIdFlag:      cmtproto1.BlockIDFlag(cs.BlockIDFlag),
 		ValidatorAddress: cs.ValidatorAddress,
 		Timestamp:        cs.Timestamp,
 		Signature:        cs.Signature,
@@ -702,7 +702,7 @@ func (cs *CommitSig) ToProto() *cmtproto.CommitSig {
 
 // FromProto sets a protobuf CommitSig to the given pointer.
 // It returns an error if the CommitSig is invalid.
-func (cs *CommitSig) FromProto(csp cmtproto.CommitSig) error {
+func (cs *CommitSig) FromProto(csp cmtproto1.CommitSig) error {
 	cs.BlockIDFlag = BlockIDFlag(csp.BlockIdFlag)
 	cs.ValidatorAddress = csp.ValidatorAddress
 	cs.Timestamp = csp.Timestamp
@@ -778,7 +778,7 @@ func (ecs *ExtendedCommitSig) ToProto() *cmtproto.ExtendedCommitSig {
 	}
 
 	return &cmtproto.ExtendedCommitSig{
-		BlockIdFlag:        cmtproto.BlockIDFlag(ecs.BlockIDFlag),
+		BlockIdFlag:        cmtproto1.BlockIDFlag(ecs.BlockIDFlag),
 		ValidatorAddress:   ecs.ValidatorAddress,
 		Timestamp:          ecs.Timestamp,
 		Signature:          ecs.Signature,
@@ -955,13 +955,13 @@ func (commit *Commit) StringIndented(indent string) string {
 }
 
 // ToProto converts Commit to protobuf
-func (commit *Commit) ToProto() *cmtproto.Commit {
+func (commit *Commit) ToProto() *cmtproto1.Commit {
 	if commit == nil {
 		return nil
 	}
 
-	c := new(cmtproto.Commit)
-	sigs := make([]cmtproto.CommitSig, len(commit.Signatures))
+	c := new(cmtproto1.Commit)
+	sigs := make([]cmtproto1.CommitSig, len(commit.Signatures))
 	for i := range commit.Signatures {
 		sigs[i] = *commit.Signatures[i].ToProto()
 	}
@@ -976,7 +976,7 @@ func (commit *Commit) ToProto() *cmtproto.Commit {
 
 // FromProto sets a protobuf Commit to the given pointer.
 // It returns an error if the commit is invalid.
-func CommitFromProto(cp *cmtproto.Commit) (*Commit, error) {
+func CommitFromProto(cp *cmtproto1.Commit) (*Commit, error) {
 	if cp == nil {
 		return nil, errors.New("nil Commit")
 	}
@@ -1315,8 +1315,8 @@ func (data *Data) StringIndented(indent string) string {
 }
 
 // ToProto converts Data to protobuf
-func (data *Data) ToProto() cmtproto.Data {
-	tp := new(cmtproto.Data)
+func (data *Data) ToProto() cmtproto1.Data {
+	tp := new(cmtproto1.Data)
 
 	if len(data.Txs) > 0 {
 		txBzs := make([][]byte, len(data.Txs))
@@ -1331,7 +1331,7 @@ func (data *Data) ToProto() cmtproto.Data {
 
 // DataFromProto takes a protobuf representation of Data &
 // returns the native type.
-func DataFromProto(dp *cmtproto.Data) (Data, error) {
+func DataFromProto(dp *cmtproto1.Data) (Data, error) {
 	if dp == nil {
 		return Data{}, errors.New("nil data")
 	}
@@ -1502,12 +1502,12 @@ func (blockID BlockID) String() string {
 }
 
 // ToProto converts BlockID to protobuf
-func (blockID *BlockID) ToProto() cmtproto.BlockID {
+func (blockID *BlockID) ToProto() cmtproto1.BlockID {
 	if blockID == nil {
-		return cmtproto.BlockID{}
+		return cmtproto1.BlockID{}
 	}
 
-	return cmtproto.BlockID{
+	return cmtproto1.BlockID{
 		Hash:          blockID.Hash,
 		PartSetHeader: blockID.PartSetHeader.ToProto(),
 	}
@@ -1515,7 +1515,7 @@ func (blockID *BlockID) ToProto() cmtproto.BlockID {
 
 // FromProto sets a protobuf BlockID to the given pointer.
 // It returns an error if the block id is invalid.
-func BlockIDFromProto(bID *cmtproto.BlockID) (*BlockID, error) {
+func BlockIDFromProto(bID *cmtproto1.BlockID) (*BlockID, error) {
 	if bID == nil {
 		return nil, errors.New("nil BlockID")
 	}
@@ -1534,6 +1534,6 @@ func BlockIDFromProto(bID *cmtproto.BlockID) (*BlockID, error) {
 
 // ProtoBlockIDIsNil is similar to the IsNil function on BlockID, but for the
 // Protobuf representation.
-func ProtoBlockIDIsNil(bID *cmtproto.BlockID) bool {
+func ProtoBlockIDIsNil(bID *cmtproto1.BlockID) bool {
 	return len(bID.Hash) == 0 && ProtoPartSetHeaderIsZero(&bID.PartSetHeader)
 }
