@@ -10,7 +10,7 @@ import (
 
 	cmtsync "github.com/cometbft/cometbft/libs/sync"
 	"github.com/cometbft/cometbft/light/store"
-	cmtproto "github.com/cometbft/cometbft/proto/cometbft/types/v3"
+	cmtproto "github.com/cometbft/cometbft/proto/cometbft/types/v1"
 	"github.com/cometbft/cometbft/types"
 )
 

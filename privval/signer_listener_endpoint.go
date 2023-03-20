@@ -9,6 +9,7 @@ import (
 	"github.com/cometbft/cometbft/libs/service"
 	cmtsync "github.com/cometbft/cometbft/libs/sync"
 	privvalproto "github.com/cometbft/cometbft/proto/cometbft/privval/v2"
+	privvalproto1 "github.com/cometbft/cometbft/proto/cometbft/privval/v1"
 )
 
 // SignerListenerEndpointOption sets an optional parameter on the SignerListenerEndpoint.
@@ -210,7 +211,7 @@ func (sl *SignerListenerEndpoint) pingLoop() {
 		select {
 		case <-sl.pingTimer.C:
 			{
-				_, err := sl.SendRequest(mustWrapMsg(&privvalproto.PingRequest{}))
+				_, err := sl.SendRequest(mustWrapMsg(&privvalproto1.PingRequest{}))
 				if err != nil {
 					sl.Logger.Error("SignerListener: Ping timeout")
 					sl.triggerReconnect()

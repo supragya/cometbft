@@ -17,6 +17,7 @@ import (
 	"github.com/cometbft/cometbft/libs/protoio"
 	"github.com/cometbft/cometbft/libs/tempfile"
 	cmtproto "github.com/cometbft/cometbft/proto/cometbft/types/v3"
+	cmtproto1 "github.com/cometbft/cometbft/proto/cometbft/types/v1"
 	"github.com/cometbft/cometbft/types"
 	cmttime "github.com/cometbft/cometbft/types/time"
 )
@@ -32,9 +33,9 @@ const (
 // A vote is either stepPrevote or stepPrecommit.
 func voteToStep(vote *cmtproto.Vote) int8 {
 	switch vote.Type {
-	case cmtproto.PrevoteType:
+	case types.SignedMsgType_PREVOTE:
 		return stepPrevote
-	case cmtproto.PrecommitType:
+	case types.SignedMsgType_PRECOMMIT:
 		return stepPrecommit
 	default:
 		panic(fmt.Sprintf("Unknown vote type: %v", vote.Type))
@@ -268,7 +269,7 @@ func (pv *FilePV) SignVote(chainID string, vote *cmtproto.Vote) error {
 
 // SignProposal signs a canonical representation of the proposal, along with
 // the chainID. Implements PrivValidator.
-func (pv *FilePV) SignProposal(chainID string, proposal *cmtproto.Proposal) error {
+func (pv *FilePV) SignProposal(chainID string, proposal *cmtproto1.Proposal) error {
 	if err := pv.signProposal(chainID, proposal); err != nil {
 		return fmt.Errorf("error signing proposal: %v", err)
 	}
@@ -323,7 +324,7 @@ func (pv *FilePV) signVote(chainID string, vote *cmtproto.Vote) error {
 	// precommits, the extension signature will always be empty.
 	// Even if the signed over data is empty, we still add the signature
 	var extSig []byte
-	if vote.Type == cmtproto.PrecommitType && !types.ProtoBlockIDIsNil(&vote.BlockID) {
+	if vote.Type == types.SignedMsgType_PRECOMMIT && !types.ProtoBlockIDIsNil(&vote.BlockID) {
 		extSignBytes := types.VoteExtensionSignBytes(chainID, vote)
 		extSig, err = pv.Key.PrivKey.Sign(extSignBytes)
 		if err != nil {
@@ -370,7 +371,7 @@ func (pv *FilePV) signVote(chainID string, vote *cmtproto.Vote) error {
 // signProposal checks if the proposal is good to sign and sets the proposal signature.
 // It may need to set the timestamp as well if the proposal is otherwise the same as
 // a previously signed proposal ie. we crashed after signing but before the proposal hit the WAL).
-func (pv *FilePV) signProposal(chainID string, proposal *cmtproto.Proposal) error {
+func (pv *FilePV) signProposal(chainID string, proposal *cmtproto1.Proposal) error {
 	height, round, step := proposal.Height, proposal.Round, stepPropose
 
 	lss := pv.LastSignState
@@ -428,7 +429,7 @@ func (pv *FilePV) saveSigned(height int64, round int32, step int8,
 // Performs these checks on the canonical votes (excluding the vote extension
 // and vote extension signatures).
 func checkVotesOnlyDifferByTimestamp(lastSignBytes, newSignBytes []byte) (time.Time, bool) {
-	var lastVote, newVote cmtproto.CanonicalVote
+	var lastVote, newVote cmtproto1.CanonicalVote
 	if err := protoio.UnmarshalDelimited(lastSignBytes, &lastVote); err != nil {
 		panic(fmt.Sprintf("LastSignBytes cannot be unmarshalled into vote: %v", err))
 	}
@@ -448,7 +449,7 @@ func checkVotesOnlyDifferByTimestamp(lastSignBytes, newSignBytes []byte) (time.T
 // returns the timestamp from the lastSignBytes.
 // returns true if the only difference in the proposals is their timestamp
 func checkProposalsOnlyDifferByTimestamp(lastSignBytes, newSignBytes []byte) (time.Time, bool) {
-	var lastProposal, newProposal cmtproto.CanonicalProposal
+	var lastProposal, newProposal cmtproto1.CanonicalProposal
 	if err := protoio.UnmarshalDelimited(lastSignBytes, &lastProposal); err != nil {
 		panic(fmt.Sprintf("LastSignBytes cannot be unmarshalled into proposal: %v", err))
 	}

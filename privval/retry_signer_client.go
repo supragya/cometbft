@@ -6,6 +6,7 @@ import (
 
 	"github.com/cometbft/cometbft/crypto"
 	cmtproto "github.com/cometbft/cometbft/proto/cometbft/types/v3"
+	cmtproto1 "github.com/cometbft/cometbft/proto/cometbft/types/v1"
 	"github.com/cometbft/cometbft/types"
 )
 
@@ -79,7 +80,7 @@ func (sc *RetrySignerClient) SignVote(chainID string, vote *cmtproto.Vote) error
 	return fmt.Errorf("exhausted all attempts to sign vote: %w", err)
 }
 
-func (sc *RetrySignerClient) SignProposal(chainID string, proposal *cmtproto.Proposal) error {
+func (sc *RetrySignerClient) SignProposal(chainID string, proposal *cmtproto1.Proposal) error {
 	var err error
 	for i := 0; i < sc.retries || sc.retries == 0; i++ {
 		err = sc.next.SignProposal(chainID, proposal)
