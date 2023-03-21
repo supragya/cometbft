@@ -31,12 +31,24 @@ func showValidator(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("can't get pubkey: %w", err)
 	}
+	pubKeyAux, err := pv.GetPubKeyAux()
+	if err != nil {
+		return fmt.Errorf("can't get pubkeyaux: %w", err)
+	}
 
 	bz, err := cmtjson.Marshal(pubKey)
 	if err != nil {
 		return fmt.Errorf("failed to marshal private validator pubkey: %w", err)
 	}
 
-	fmt.Println(string(bz))
+	fmt.Printf("CometBFT PubKey: %s\n", string(bz))
+
+	bza, err := cmtjson.Marshal(pubKeyAux)
+	if err != nil {
+		return fmt.Errorf("failed to marshal private validator pubkeyaux: %w", err)
+	}
+
+	fmt.Printf("zkMint Aux PubKey: %s\n", string(bza))
+
 	return nil
 }

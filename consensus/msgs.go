@@ -86,10 +86,11 @@ func MsgToProto(msg Message) (proto.Message, error) {
 	case *VoteSetMaj23Message:
 		bi := msg.BlockID.ToProto()
 		pb = &cmtcons.VoteSetMaj23{
-			Height:  msg.Height,
-			Round:   msg.Round,
-			Type:    msg.Type,
-			BlockID: bi,
+			Height:        msg.Height,
+			Round:         msg.Round,
+			Type:          msg.Type,
+			BlockID:       bi,
+			AuxHeaderHash: msg.AuxHeaderHash,
 		}
 
 	case *VoteSetBitsMessage:
@@ -97,10 +98,11 @@ func MsgToProto(msg Message) (proto.Message, error) {
 		bits := msg.Votes.ToProto()
 
 		vsb := &cmtcons.VoteSetBits{
-			Height:  msg.Height,
-			Round:   msg.Round,
-			Type:    msg.Type,
-			BlockID: bi,
+			Height:        msg.Height,
+			Round:         msg.Round,
+			Type:          msg.Type,
+			BlockID:       bi,
+			AuxHeaderHash: msg.AuxHeaderHash,
 		}
 
 		if bits != nil {
@@ -202,10 +204,11 @@ func MsgFromProto(p proto.Message) (Message, error) {
 			return nil, fmt.Errorf("voteSetMaj23 msg to proto error: %w", err)
 		}
 		pb = &VoteSetMaj23Message{
-			Height:  msg.Height,
-			Round:   msg.Round,
-			Type:    msg.Type,
-			BlockID: *bi,
+			Height:        msg.Height,
+			Round:         msg.Round,
+			Type:          msg.Type,
+			BlockID:       *bi,
+			AuxHeaderHash: msg.AuxHeaderHash,
 		}
 	case *cmtcons.VoteSetBits:
 		bi, err := types.BlockIDFromProto(&msg.BlockID)
@@ -216,11 +219,12 @@ func MsgFromProto(p proto.Message) (Message, error) {
 		bits.FromProto(&msg.Votes)
 
 		pb = &VoteSetBitsMessage{
-			Height:  msg.Height,
-			Round:   msg.Round,
-			Type:    msg.Type,
-			BlockID: *bi,
-			Votes:   bits,
+			Height:        msg.Height,
+			Round:         msg.Round,
+			Type:          msg.Type,
+			BlockID:       *bi,
+			AuxHeaderHash: msg.AuxHeaderHash,
+			Votes:         bits,
 		}
 	default:
 		return nil, fmt.Errorf("consensus: message not recognized: %T", msg)

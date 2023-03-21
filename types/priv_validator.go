@@ -7,6 +7,7 @@ import (
 
 	"github.com/cometbft/cometbft/crypto"
 	"github.com/cometbft/cometbft/crypto/ed25519"
+	"github.com/cometbft/cometbft/crypto/eddsabn254"
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 )
 
@@ -14,6 +15,8 @@ import (
 // that signs votes and proposals, and never double signs.
 type PrivValidator interface {
 	GetPubKey() (crypto.PubKey, error)
+	// zkMint: Aux PubKey access
+	GetPubKeyAux() (crypto.PubKey, error)
 
 	SignVote(chainID string, vote *cmtproto.Vote) error
 	SignProposal(chainID string, proposal *cmtproto.Proposal) error
@@ -49,24 +52,30 @@ func (pvs PrivValidatorsByAddress) Swap(i, j int) {
 // Only use it for testing.
 type MockPV struct {
 	PrivKey              crypto.PrivKey
+	PrivKeyAux           crypto.PrivKey
 	breakProposalSigning bool
 	breakVoteSigning     bool
 }
 
 func NewMockPV() MockPV {
-	return MockPV{ed25519.GenPrivKey(), false, false}
+	return MockPV{ed25519.GenPrivKey(), eddsabn254.GenPrivKey(), false, false}
 }
 
 // NewMockPVWithParams allows one to create a MockPV instance, but with finer
 // grained control over the operation of the mock validator. This is useful for
 // mocking test failures.
 func NewMockPVWithParams(privKey crypto.PrivKey, breakProposalSigning, breakVoteSigning bool) MockPV {
-	return MockPV{privKey, breakProposalSigning, breakVoteSigning}
+	return MockPV{privKey, eddsabn254.GenPrivKey(), breakProposalSigning, breakVoteSigning}
 }
 
 // Implements PrivValidator.
 func (pv MockPV) GetPubKey() (crypto.PubKey, error) {
 	return pv.PrivKey.PubKey(), nil
+}
+
+// Implements PrivValidator
+func (pv MockPV) GetPubKeyAux() (crypto.PubKey, error) {
+	return pv.PrivKeyAux.PubKey(), nil
 }
 
 // Implements PrivValidator.
@@ -141,5 +150,5 @@ func (pv *ErroringMockPV) SignProposal(chainID string, proposal *cmtproto.Propos
 // NewErroringMockPV returns a MockPV that fails on each signing request. Again, for testing only.
 
 func NewErroringMockPV() *ErroringMockPV {
-	return &ErroringMockPV{MockPV{ed25519.GenPrivKey(), false, false}}
+	return &ErroringMockPV{MockPV{ed25519.GenPrivKey(), eddsabn254.GenPrivKey(), false, false}}
 }
