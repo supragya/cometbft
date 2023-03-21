@@ -10,6 +10,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
 	"github.com/cosmos/gogoproto/proto"
 
 	cfg "github.com/cometbft/cometbft/config"
@@ -28,6 +29,8 @@ import (
 	sm "github.com/cometbft/cometbft/state"
 	"github.com/cometbft/cometbft/types"
 	cmttime "github.com/cometbft/cometbft/types/time"
+
+	"github.com/cometbft/cometbft/mstm"
 )
 
 // Consensus sentinel errors
@@ -1162,10 +1165,18 @@ func (cs *State) defaultDecideProposal(height int64, round int32) {
 
 	// Make proposal
 	propBlockID := types.BlockID{Hash: block.Hash(), PartSetHeader: blockParts.Header()}
-	proposal := types.NewProposal(height, round, cs.ValidRound, propBlockID)
+	propHeaderAux := mstm.GenerateLightHeader(block, cs.Validators)
+	propHeaderAuxHash := mstm.GenerateHeaderAuxHash(propHeaderAux)
+	proposal := types.NewProposal(height, round, cs.ValidRound, propBlockID, propHeaderAuxHash)
 	p := proposal.ToProto()
 	if err := cs.privValidator.SignProposal(cs.state.ChainID, p); err == nil {
 		proposal.Signature = p.Signature
+
+		_, err := proposal.HeaderAuxSignature.SetBytes(p.HeaderAuxSignature)
+		if err != nil {
+			cs.Logger.Error("error with aux signer", "error", err)
+			panic(err)
+		}
 
 		// send proposal and block parts on internal msg queue
 		cs.sendInternalMessage(msgInfo{&ProposalMessage{proposal}, ""})
@@ -1274,36 +1285,35 @@ func (cs *State) defaultDoPrevote(height int64, round int32) {
 	// If a block is locked, prevote that.
 	if cs.LockedBlock != nil {
 		logger.Debug("prevote step; already locked on a block; prevoting locked block")
-		cs.signAddVote(cmtproto.PrevoteType, cs.LockedBlock.Hash(), cs.LockedBlockParts.Header())
+		cs.signAddVoteMultiSig(cmtproto.PrevoteType, false, cs.LockedBlock, cs.Validators, cs.LockedBlockParts.Header())
 		return
 	}
 
 	// If ProposalBlock is nil, prevote nil.
 	if cs.ProposalBlock == nil {
 		logger.Debug("prevote step: ProposalBlock is nil")
-		cs.signAddVote(cmtproto.PrevoteType, nil, types.PartSetHeader{})
+		cs.signAddVoteMultiSig(cmtproto.PrevoteType, true, nil, nil, types.PartSetHeader{})
 		return
 	}
 
-	// Validate proposal block, from consensus' perspective
+	// Validate proposal block, from Tendermint's perspective
 	err := cs.blockExec.ValidateBlock(cs.state, cs.ProposalBlock)
 	if err != nil {
 		// ProposalBlock is invalid, prevote nil.
 		logger.Error("prevote step: consensus deems this block invalid; prevoting nil",
 			"err", err)
-		cs.signAddVote(cmtproto.PrevoteType, nil, types.PartSetHeader{})
+		cs.signAddVoteMultiSig(cmtproto.PrevoteType, true, nil, nil, types.PartSetHeader{})
 		return
 	}
 
 	/*
 		Before prevoting on the block received from the proposer for the current round and height,
 		we request the Application, via `ProcessProposal` ABCI call, to confirm that the block is
-		valid. If the Application does not accept the block, consensus prevotes `nil`.
+		valid. If the Application does not accept the block, Tendermint prevotes `nil`.
 
-		WARNING: misuse of block rejection by the Application can seriously compromise
-		the liveness properties of consensus.
-		Please see `PrepareProosal`-`ProcessProposal` coherence and determinism properties
-		in the ABCI++ specification.
+		WARNING: misuse of block rejection by the Application can seriously compromise Tendermint's
+		liveness properties. Please see `PrepareProosal`-`ProcessProposal` coherence and determinism
+		properties in the ABCI++ specification.
 	*/
 	isAppValid, err := cs.blockExec.ProcessProposal(cs.ProposalBlock, cs.state)
 	if err != nil {
@@ -1317,7 +1327,7 @@ func (cs *State) defaultDoPrevote(height int64, round int32) {
 	if !isAppValid {
 		logger.Error("prevote step: state machine rejected a proposed block; this should not happen:"+
 			"the proposer may be misbehaving; prevoting nil", "err", err)
-		cs.signAddVote(cmtproto.PrevoteType, nil, types.PartSetHeader{})
+		cs.signAddVoteMultiSig(cmtproto.PrevoteType, true, nil, nil, types.PartSetHeader{})
 		return
 	}
 
@@ -1325,7 +1335,24 @@ func (cs *State) defaultDoPrevote(height int64, round int32) {
 	// NOTE: the proposal signature is validated when it is received,
 	// and the proposal block parts are validated as they are received (against the merkle hash in the proposal)
 	logger.Debug("prevote step: ProposalBlock is valid")
-	cs.signAddVote(cmtproto.PrevoteType, cs.ProposalBlock.Hash(), cs.ProposalBlockParts.Header())
+	cs.signAddVoteMultiSig(cmtproto.PrevoteType, false, cs.ProposalBlock, cs.Validators, cs.ProposalBlockParts.Header())
+}
+
+func (cs *State) signAddVoteMultiSig(
+	msgType cmtproto.SignedMsgType,
+	isNilVote bool,
+	block *types.Block,
+	validators *types.ValidatorSet,
+	header types.PartSetHeader,
+) *types.Vote {
+	if isNilVote {
+		return cs.signAddVote(msgType, []byte{}, fr.NewElement(0), types.PartSetHeader{})
+	}
+	// Derive hashes
+	auxHeaderHash := mstm.GenerateHeaderAuxHash(mstm.GenerateLightHeader(block, validators))
+	headerHash := block.Hash()
+	// Sign off and return
+	return cs.signAddVote(msgType, headerHash, auxHeaderHash, header)
 }
 
 // Enter: any +2/3 prevotes at next round.
@@ -1395,7 +1422,7 @@ func (cs *State) enterPrecommit(height int64, round int32) {
 			logger.Debug("precommit step; no +2/3 prevotes during enterPrecommit; precommitting nil")
 		}
 
-		cs.signAddVote(cmtproto.PrecommitType, nil, types.PartSetHeader{})
+		cs.signAddVoteMultiSig(cmtproto.PrecommitType, true, nil, nil, types.PartSetHeader{})
 		return
 	}
 
@@ -1425,7 +1452,7 @@ func (cs *State) enterPrecommit(height int64, round int32) {
 			}
 		}
 
-		cs.signAddVote(cmtproto.PrecommitType, nil, types.PartSetHeader{})
+		cs.signAddVoteMultiSig(cmtproto.PrecommitType, true, nil, nil, types.PartSetHeader{})
 		return
 	}
 
@@ -1440,7 +1467,7 @@ func (cs *State) enterPrecommit(height int64, round int32) {
 			logger.Error("failed publishing event relock", "err", err)
 		}
 
-		cs.signAddVote(cmtproto.PrecommitType, blockID.Hash, blockID.PartSetHeader)
+		cs.signAddVoteMultiSig(cmtproto.PrecommitType, true, nil, nil, types.PartSetHeader{})
 		return
 	}
 
@@ -1461,7 +1488,7 @@ func (cs *State) enterPrecommit(height int64, round int32) {
 			logger.Error("failed publishing event lock", "err", err)
 		}
 
-		cs.signAddVote(cmtproto.PrecommitType, blockID.Hash, blockID.PartSetHeader)
+		cs.signAddVoteMultiSig(cmtproto.PrecommitType, false, cs.ProposalBlock, cs.Validators, cs.ProposalBlockParts.Header())
 		return
 	}
 
@@ -1483,7 +1510,7 @@ func (cs *State) enterPrecommit(height int64, round int32) {
 		logger.Error("failed publishing event unlock", "err", err)
 	}
 
-	cs.signAddVote(cmtproto.PrecommitType, nil, types.PartSetHeader{})
+	cs.signAddVoteMultiSig(cmtproto.PrecommitType, true, nil, nil, types.PartSetHeader{})
 }
 
 // Enter: any +2/3 precommits for next round.
@@ -1876,8 +1903,17 @@ func (cs *State) defaultSetProposal(proposal *types.Proposal) error {
 	) {
 		return ErrInvalidProposalSignature
 	}
+	// Verify aux signature
+	if !cs.Validators.GetProposer().PubKeyAux.VerifySignature(
+		p.HeaderAuxHash, p.HeaderAuxSignature,
+	) {
+		return ErrInvalidProposalSignature
+	}
 
 	proposal.Signature = p.Signature
+	if _, err := proposal.HeaderAuxSignature.SetBytes(p.HeaderAuxSignature); err != nil {
+		return ErrInvalidProposalSignature
+	}
 	cs.Proposal = proposal
 	// We don't update cs.ProposalBlockParts if it is already set.
 	// This happens if we're already in cstypes.RoundStepCommit or if there is a valid block in the current round.
@@ -2233,6 +2269,7 @@ func (cs *State) addVote(vote *types.Vote, peerID p2p.ID) (added bool, err error
 func (cs *State) signVote(
 	msgType cmtproto.SignedMsgType,
 	hash []byte,
+	auxHash fr.Element,
 	header types.PartSetHeader,
 ) (*types.Vote, error) {
 	// Flush the WAL. Otherwise, we may not recompute the same vote to sign,
@@ -2247,6 +2284,7 @@ func (cs *State) signVote(
 
 	addr := cs.privValidatorPubKey.Address()
 	valIdx, _ := cs.Validators.GetByAddress(addr)
+	auxHashBytes := auxHash.Bytes()
 
 	vote := &types.Vote{
 		ValidatorAddress: addr,
@@ -2256,11 +2294,13 @@ func (cs *State) signVote(
 		Timestamp:        cs.voteTime(),
 		Type:             msgType,
 		BlockID:          types.BlockID{Hash: hash, PartSetHeader: header},
+		HeaderAuxHash:    auxHashBytes[:],
 	}
 
 	v := vote.ToProto()
 	err := cs.privValidator.SignVote(cs.state.ChainID, v)
 	vote.Signature = v.Signature
+	vote.SignatureAux = v.SignatureAux
 	vote.Timestamp = v.Timestamp
 
 	return vote, err
@@ -2288,7 +2328,7 @@ func (cs *State) voteTime() time.Time {
 }
 
 // sign the vote and publish on internalMsgQueue
-func (cs *State) signAddVote(msgType cmtproto.SignedMsgType, hash []byte, header types.PartSetHeader) *types.Vote {
+func (cs *State) signAddVote(msgType cmtproto.SignedMsgType, hash []byte, auxHash fr.Element, header types.PartSetHeader) *types.Vote {
 	if cs.privValidator == nil { // the node does not have a key
 		return nil
 	}
@@ -2305,7 +2345,7 @@ func (cs *State) signAddVote(msgType cmtproto.SignedMsgType, hash []byte, header
 	}
 
 	// TODO: pass pubKey to signVote
-	vote, err := cs.signVote(msgType, hash, header)
+	vote, err := cs.signVote(msgType, hash, auxHash, header)
 	if err == nil {
 		cs.sendInternalMessage(msgInfo{&VoteMessage{vote}, ""})
 		cs.Logger.Debug("signed and pushed vote", "height", cs.Height, "round", cs.Round, "vote", vote)

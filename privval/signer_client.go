@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/cometbft/cometbft/crypto"
+	"github.com/cometbft/cometbft/crypto/eddsabn254"
 	cryptoenc "github.com/cometbft/cometbft/crypto/encoding"
 	privvalproto "github.com/cometbft/cometbft/proto/tendermint/privval"
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -88,6 +89,13 @@ func (sc *SignerClient) GetPubKey() (crypto.PubKey, error) {
 	}
 
 	return pk, nil
+}
+
+// GetPubKey is a dummy placeholder, presents a random
+// EDDSA Pubkey when called
+func (sc *SignerClient) GetPubKeyAux() (crypto.PubKey, error) {
+	randomPrivKey := eddsabn254.GenPrivKey()
+	return randomPrivKey.PubKey(), nil
 }
 
 // SignVote requests a remote signer to sign a vote
